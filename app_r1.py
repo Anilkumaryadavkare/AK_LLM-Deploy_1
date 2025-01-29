@@ -18,8 +18,15 @@ print(f"Extracted text length: {len(pdf_text)} characters")
 
 from transformers import AutoTokenizer  # Add this import
 
-# Initialize tokenizer BEFORE creating the text splitter
-tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-base")
+
+
+def get_embeddings():
+    from langchain.embeddings import SentenceTransformerEmbeddings
+    return SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
+
+def get_tokenizer():
+    return AutoTokenizer.from_pretrained("google/flan-t5-base")
+
 
 # Now create the text splitter with the tokenizer
 text_splitter = RecursiveCharacterTextSplitter(
@@ -31,11 +38,7 @@ text_splitter = RecursiveCharacterTextSplitter(
 # Then split the text
 chunks = text_splitter.split_text(pdf_text)
 
-from langchain.embeddings import SentenceTransformerEmbeddings
 from langchain.vectorstores import FAISS
-
-# Create embeddings
-embeddings = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
 
 # Create vector store
 vector_store = FAISS.from_texts(chunks, embeddings)
