@@ -23,7 +23,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Start command with health check
-HEALTHCHECK --interval=5m --timeout=30s --start-period=1m \
+  HEALTHCHECK --interval=2m --timeout=30s --start-period=3m \
   CMD curl --fail http://localhost:8501/_stcore/health || exit 1
 
 CMD ["streamlit", "run", "web_app.py", "--server.port", "8501", "--server.address", "0.0.0.0"]
