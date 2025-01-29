@@ -1,3 +1,4 @@
+
 import streamlit as st
 from app_r1 import load_pdf, text_splitter, embeddings
 from langchain_community.vectorstores import FAISS  # Add this import
@@ -44,4 +45,3 @@ if st.session_state.vector_store:
                 for i, doc in enumerate(docs):
                     st.markdown(f"**Passage {i+1}:**")
                     st.write(doc.page_content)
-                    st.divider()
