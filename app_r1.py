@@ -30,13 +30,11 @@ def initialize_text_splitter():
 def initialize_embeddings():
     """Initialize the embedding model."""
     return SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
-
 def initialize_qa_chain(vector_store):
-    """Initialize the QA chain."""
     flan_pipeline = pipeline(
         task="text2text-generation",
         model="google/flan-t5-base",
-        max_new_tokens=512,
+        max_new_tokens=1024,  # Increase token limit for longer answers
         temperature=0.7,
         do_sample=True,
         top_k=50
@@ -44,7 +42,7 @@ def initialize_qa_chain(vector_store):
     qa = RetrievalQA.from_chain_type(
         llm=HuggingFacePipeline(pipeline=flan_pipeline),
         chain_type="stuff",
-        retriever=vector_store.as_retriever(search_kwargs={"k": 3}),
+        retriever=vector_store.as_retriever(search_kwargs={"k": 5}),  # Retrieve more relevant chunks
         return_source_documents=True
     )
     return qa
