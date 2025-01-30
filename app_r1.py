@@ -1,4 +1,5 @@
 import os
+import re  # Import the re module for text cleaning
 from PyPDF2 import PdfReader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from sentence_transformers import SentenceTransformer
