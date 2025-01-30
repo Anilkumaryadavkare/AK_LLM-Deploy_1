@@ -30,12 +30,13 @@ def initialize_text_splitter():
 def initialize_embeddings():
     """Initialize the embedding model."""
     return SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
+
 def initialize_qa_chain(vector_store):
     flan_pipeline = pipeline(
         task="text2text-generation",
         model="google/flan-t5-base",
-        max_new_tokens=1024,  # Increase token limit for longer answers
-        temperature=0.7,
+        max_new_tokens=200,  # Increase token limit for longer answers
+        temperature=0.5,     # Lower temperature for more deterministic outputs
         do_sample=True,
         top_k=50
     )
