@@ -1,87 +1,56 @@
-
 from PyPDF2 import PdfReader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from transformers import AutoTokenizer, pipeline
+from langchain.embeddings import SentenceTransformerEmbeddings
+from langchain.vectorstores import FAISS
+from langchain.chains import RetrievalQA
+from langchain.llms import HuggingFacePipeline
 
-def load_pdf(file_path):  # ✅ Correct parameter definition
-    reader = PdfReader(file_path)  # ✅ Use the parameter variable
+# Initialize tokenizer first
+tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-base")
+
+def load_pdf(file_path):
+    reader = PdfReader(file_path)
     text = ""
     for page in reader.pages:
         text += page.extract_text()
     return text
 
-
-# Test PDF loading
+# Load PDF
 pdf_text = load_pdf("C:/Users/algol/rag_project/docs/graphcube-ibpl+server+user+guide.pdf")
 print(f"Extracted text length: {len(pdf_text)} characters")
 
-
-
-from transformers import AutoTokenizer  # Add this import
-
-
-
-def get_embeddings():
-    from langchain.embeddings import SentenceTransformerEmbeddings
-    return SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
-
-def get_tokenizer():
-    return AutoTokenizer.from_pretrained("google/flan-t5-base")
-
-
-# Now create the text splitter with the tokenizer
+# Split text
 text_splitter = RecursiveCharacterTextSplitter(
     chunk_size=300,
     chunk_overlap=50,
     length_function=lambda text: len(tokenizer.encode(text))
 )
-
-# Then split the text
 chunks = text_splitter.split_text(pdf_text)
 
-from langchain.vectorstores import FAISS
-
-# Create vector store
+# Initialize embeddings
+embeddings = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
 vector_store = FAISS.from_texts(chunks, embeddings)
-vector_store.save_local("faiss_index")
 
-from langchain.chains import RetrievalQA
-from langchain.llms import HuggingFaceHub
-
-from transformers import pipeline
-from langchain.llms import HuggingFacePipeline
-
-
+# Create pipeline
 flan_pipeline = pipeline(
     task="text2text-generation",
     model="google/flan-t5-base",
     max_new_tokens=512,
-    temperature=0.7,  # Increased for more creative responses
+    temperature=0.7,
     do_sample=True,
     top_k=50
 )
 
-
-
-# 2. Create LLM wrapper
-llm = HuggingFacePipeline(pipeline=flan_pipeline)
-
-# 3. Use in QA chain
-# Updated imports
-from langchain_huggingface import HuggingFacePipeline  # After installing langchain-huggingface
-
-# ... (previous PDF loading and text splitting code)
-
-# Improved QA chain configuration
+# Create QA chain
 qa = RetrievalQA.from_chain_type(
     llm=HuggingFacePipeline(pipeline=flan_pipeline),
     chain_type="stuff",
     retriever=vector_store.as_retriever(search_kwargs={"k": 3}),
-    return_source_documents=True  # Add this to debug context
+    return_source_documents=True
 )
 
-# Modified query execution
-
-
+# Test query
 query = "Answer in full sentences. What are the main chronological sections mentioned in this document?"
 result = qa.invoke({"query": query})
 
