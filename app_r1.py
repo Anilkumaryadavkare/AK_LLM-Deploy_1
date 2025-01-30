@@ -7,6 +7,7 @@ from langchain_community.embeddings import SentenceTransformerEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain.chains import RetrievalQA
 from langchain_community.llms import HuggingFacePipeline
+from langchain_community.embeddings import HuggingFaceEmbeddings
 
 # Initialize tokenizer
 tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-base")
@@ -26,10 +27,8 @@ def initialize_text_splitter():
         chunk_overlap=50,
         length_function=lambda text: len(tokenizer.encode(text))
     )
-
 def initialize_embeddings():
-    """Initialize the embedding model."""
-    return SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
+    return HuggingFaceEmbeddings(model_name="sentence-transformers/all-mpnet-base-v2")
 
 def initialize_qa_chain(vector_store):
     flan_pipeline = pipeline(
