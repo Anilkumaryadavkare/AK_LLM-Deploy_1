@@ -1,5 +1,6 @@
 import streamlit as st
 import re  # For text cleaning
+import os  # For file path operations
 from app_r1 import load_pdf, initialize_text_splitter, initialize_embeddings, initialize_qa_chain
 from langchain_community.vectorstores import FAISS
 
@@ -38,7 +39,7 @@ def filter_passages(passages, query):
 FAISS_INDEX_PATH = "faiss_index"
 
 def load_or_create_vector_store(chunks, embeddings):
-    if os.path.exists(FAISS_INDEX_PATH):
+    if os.path.exists(FAISS_INDEX_PATH):  # Check if FAISS index exists
         print("Loading FAISS index from disk...")
         return FAISS.load_local(FAISS_INDEX_PATH, embeddings, allow_dangerous_deserialization=True)
     else:
