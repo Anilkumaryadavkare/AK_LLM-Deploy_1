@@ -1,11 +1,12 @@
 import os
-import re  # Import the re module for text cleaning
+import re
 from PyPDF2 import PdfReader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from sentence_transformers import SentenceTransformer
 from transformers import pipeline
 from langchain.chains import RetrievalQA
 from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain.llms import HuggingFacePipeline  # Import HuggingFacePipeline
 
 # Load PDF and extract text
 def load_pdf(file):
@@ -32,6 +33,7 @@ def initialize_embeddings():
 
 # Initialize QA chain
 def initialize_qa_chain(vector_store):
+    # Create a Hugging Face pipeline
     flan_pipeline = pipeline(
         task="text2text-generation",
         model="google/flan-t5-base",  # Use a lightweight language model
@@ -40,8 +42,12 @@ def initialize_qa_chain(vector_store):
         do_sample=True,
         top_k=30             # Reduce top_k for more focused responses
     )
+    
+    # Wrap the pipeline with HuggingFacePipeline
+    hf_pipeline = HuggingFacePipeline(pipeline=flan_pipeline)
+    
     qa = RetrievalQA.from_chain_type(
-        llm=flan_pipeline,
+        llm=hf_pipeline,  # Use the wrapped pipeline
         chain_type="stuff",
         retriever=vector_store.as_retriever(search_kwargs={"k": 3}),  # Retrieve fewer but more relevant chunks
         return_source_documents=True
