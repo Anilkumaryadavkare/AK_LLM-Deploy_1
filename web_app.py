@@ -36,18 +36,29 @@ if uploaded_file:
             st.error(f"Error occurred while processing the PDF: {e}")
 
 # Query section
+query = None  # Initialize query to avoid NameError
 if st.session_state.vector_store and st.session_state.qa_chain:
     query = st.text_input("Ask anything about the document:")
 
-    if query:
+    if query:  # Check if query is not empty
         with st.spinner("Searching for answers..."):
             try:
                 # Get response using the QA chain
                 result = st.session_state.qa_chain.invoke({"query": query})
 
+                # Post-process the answer to make it more concise and readable
+                def clean_answer(answer):
+                    # Remove internal-use-only phrases
+                    answer = re.sub(r"\bo9 Internal use Only\b", "", answer, flags=re.IGNORECASE)
+                    # Remove extra whitespace
+                    answer = re.sub(r"\s+", " ", answer).strip()
+                    return answer
+
+                cleaned_answer = clean_answer(result["result"])
+
                 # Display the answer
                 st.subheader("Answer:")
-                st.write(result["result"])
+                st.write(cleaned_answer)
 
                 # Show relevant passages in chronological order
                 st.subheader("Relevant Passages:")
@@ -59,36 +70,3 @@ if st.session_state.vector_store and st.session_state.qa_chain:
                 st.error(f"Error occurred while fetching the answer: {e}")
 else:
     st.warning("No vector store found. Please upload a PDF to process the document.")
-
-
-import re
-
-# Post-process the answer to make it more concise and readable
-def clean_answer(answer):
-    # Remove internal-use-only phrases
-    answer = re.sub(r"\bo9 Internal use Only\b", "", answer, flags=re.IGNORECASE)
-    # Remove extra whitespace
-    answer = re.sub(r"\s+", " ", answer).strip()
-    return answer
-
-if query:
-    with st.spinner("Searching for answers..."):
-        try:
-            # Get response using the QA chain
-            result = st.session_state.qa_chain.invoke({"query": query})
-
-            # Post-process the answer
-            cleaned_answer = clean_answer(result["result"])
-
-            # Display the answer
-            st.subheader("Answer:")
-            st.write(cleaned_answer)
-
-            # Show relevant passages in chronological order
-            st.subheader("Relevant Passages:")
-            docs = st.session_state.vector_store.similarity_search(query, k=5)  # Retrieve top 5 relevant chunks
-            for i, doc in enumerate(docs):
-                st.markdown(f"**Passage {i + 1}:**")
-                st.write(doc.page_content)
-        except Exception as e:
-            st.error(f"Error occurred while fetching the answer: {e}")
