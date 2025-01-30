@@ -1,7 +1,7 @@
-streamlit
-langchain
-pypdf2
-sentence-transformers
-faiss-cpu
 transformers
-python-dotenv
+sentence-transformers
+torch
+faiss-cpu
+langchain
+streamlit
+openai
