@@ -1,4 +1,5 @@
 import streamlit as st
+import re  # Import the re module
 from app_r1 import load_pdf, initialize_text_splitter, initialize_embeddings, initialize_qa_chain
 from langchain_community.vectorstores import FAISS
 
