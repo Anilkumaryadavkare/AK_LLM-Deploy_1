@@ -6,3 +6,4 @@ langchain
 streamlit
 openai
 PyPDF2
+langchain-community
