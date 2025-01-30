@@ -42,9 +42,19 @@ if st.session_state.vector_store and st.session_state.qa_chain:
     if query:
         with st.spinner("Searching for answers..."):
             try:
-                response = st.session_state.qa_chain.invoke({"query": query})["result"]
+                # Get response using the QA chain
+                result = st.session_state.qa_chain.invoke({"query": query})
+
+                # Display the answer
                 st.subheader("Answer:")
-                st.write(response)
+                st.write(result["result"])
+
+                # Show relevant passages in chronological order
+                st.subheader("Relevant Passages:")
+                docs = st.session_state.vector_store.similarity_search(query, k=5)  # Retrieve top 5 relevant chunks
+                for i, doc in enumerate(docs):
+                    st.markdown(f"**Passage {i + 1}:**")
+                    st.write(doc.page_content)
             except Exception as e:
                 st.error(f"Error occurred while fetching the answer: {e}")
 else:
