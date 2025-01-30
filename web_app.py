@@ -22,18 +22,18 @@ def clean_answer(answer):
     answer = re.sub(r"\s+", " ", answer).strip()
     return answer
 
-# **New:** Semantic filtering of passages using cosine similarity
-def filter_passages(query, passages, embeddings, threshold=0.6):
-    query_embedding = np.array(embeddings.embed_query(query))  # Convert query to vector
+# **New:** Ensure relevant passages are displayed
+def filter_passages(query, passages, embeddings, threshold=0.5):  # 🔹 LOWERED THRESHOLD
+    query_embedding = np.array(embeddings.embed_query(query))  
     filtered_passages = []
     
     for passage in passages:
         passage_embedding = np.array(embeddings.embed_query(passage.page_content))
         similarity = np.dot(query_embedding, passage_embedding) / (
             np.linalg.norm(query_embedding) * np.linalg.norm(passage_embedding)
-        )  # Cosine similarity
+        )  
         
-        if similarity >= threshold:  # Only keep relevant passages
+        if similarity >= threshold:  
             filtered_passages.append(passage)
 
     return filtered_passages
@@ -79,13 +79,17 @@ if st.session_state.vector_store and st.session_state.qa_chain:
                 st.write(cleaned_answer)
 
                 st.subheader("Relevant Passages:")
-                docs = st.session_state.vector_store.similarity_search(query, k=10)  # Retrieve more passages
-                filtered_docs = filter_passages(query, docs, st.session_state.qa_chain.retriever.vectorstore.embeddings, threshold=0.7)
+                docs = st.session_state.vector_store.similarity_search(query, k=12)  # 🔹 INCREASED k VALUE
+                filtered_docs = filter_passages(query, docs, st.session_state.qa_chain.retriever.vectorstore.embeddings, threshold=0.5)
 
-                for i, doc in enumerate(filtered_docs):
-                    st.markdown(f"**Passage {i + 1}:**")
-                    st.write(doc.page_content)
+                if filtered_docs:  # 🔹 ENSURE PASSAGES ARE DISPLAYED
+                    for i, doc in enumerate(filtered_docs):
+                        st.markdown(f"**Passage {i + 1}:**")
+                        st.write(doc.page_content)
+                else:
+                    st.write("No highly relevant passages found. Try refining your query.")
+
             except Exception as e:
                 st.error(f"Error occurred while fetching the answer: {e}")
 else:
-    st.warning("No vector store found. Please upload a PDF to process the document.")
+    st.warning("Upload chey ra jaffa. Please upload a PDF to process the document.")
