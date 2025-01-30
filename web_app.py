@@ -22,8 +22,15 @@ def clean_answer(answer):
     answer = re.sub(r"\s+", " ", answer).strip()
     return answer
 
-# **New:** Ensure relevant passages are displayed
-def filter_passages(query, passages, embeddings, threshold=0.5):  # 🔹 LOWERED THRESHOLD
+# **New:** Highlight the query term in passages for better visibility
+def highlight_text(text, query):
+    words = query.split()
+    for word in words:
+        text = text.replace(word, f"**{word}**")  # Make the keyword bold
+    return text
+
+# **New:** Improved passage filtering with semantic similarity
+def filter_passages(query, passages, embeddings, threshold=0.5):
     query_embedding = np.array(embeddings.embed_query(query))  
     filtered_passages = []
     
@@ -79,13 +86,14 @@ if st.session_state.vector_store and st.session_state.qa_chain:
                 st.write(cleaned_answer)
 
                 st.subheader("Relevant Passages:")
-                docs = st.session_state.vector_store.similarity_search(query, k=12)  # 🔹 INCREASED k VALUE
+                docs = st.session_state.vector_store.similarity_search(query, k=15)  # 🔹 INCREASED RETRIEVAL DEPTH
                 filtered_docs = filter_passages(query, docs, st.session_state.qa_chain.retriever.vectorstore.embeddings, threshold=0.5)
 
-                if filtered_docs:  # 🔹 ENSURE PASSAGES ARE DISPLAYED
-                    for i, doc in enumerate(filtered_docs):
+                if filtered_docs:  # 🔹 SHOW UP TO 3 PASSAGES
+                    for i, doc in enumerate(filtered_docs[:3]):
                         st.markdown(f"**Passage {i + 1}:**")
-                        st.write(doc.page_content)
+                        highlighted_text = highlight_text(doc.page_content, query)  # 🔹 HIGHLIGHT QUERY WORDS
+                        st.markdown(highlighted_text)
                 else:
                     st.write("No highly relevant passages found. Try refining your query.")
 
