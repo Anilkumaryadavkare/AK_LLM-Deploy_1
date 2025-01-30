@@ -18,8 +18,8 @@ def load_pdf(file):
 # Initialize text splitter
 def initialize_text_splitter():
     return RecursiveCharacterTextSplitter(
-        chunk_size=500,  # Keep chunks moderately large for context
-        chunk_overlap=150,  # Slightly increase overlap for better retrieval
+        chunk_size=700,  # Larger chunk size to maintain context
+        chunk_overlap=200,  # More overlap for context retention
         length_function=len
     )
 
@@ -34,10 +34,10 @@ def initialize_qa_chain(vector_store):
     flan_pipeline = pipeline(
         task="text2text-generation",
         model="google/flan-t5-base",
-        max_new_tokens=100,  # Limit verbosity
-        temperature=0.1,  # Make responses more deterministic
-        do_sample=False,  # Disable sampling for consistency
-        top_k=20  # Reduce randomness further
+        max_new_tokens=200,  # Increased token limit for complete answers
+        temperature=0.1,  # More deterministic output
+        do_sample=False,  # Reduce randomness
+        top_k=10  # Retrieve a diverse set of relevant results
     )
     
     hf_pipeline = HuggingFacePipeline(pipeline=flan_pipeline)
@@ -45,7 +45,7 @@ def initialize_qa_chain(vector_store):
     qa = RetrievalQA.from_chain_type(
         llm=hf_pipeline,
         chain_type="stuff",
-        retriever=vector_store.as_retriever(search_kwargs={"k": 8}),  # Retrieve more relevant passages
+        retriever=vector_store.as_retriever(search_kwargs={"k": 10}),  # Retrieve more chunks
         return_source_documents=True
     )
     return qa
