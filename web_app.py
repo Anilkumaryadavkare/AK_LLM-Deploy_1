@@ -23,7 +23,7 @@ def clean_answer(answer):
     return answer
 
 # **New:** Semantic filtering of passages using cosine similarity
-def filter_passages(query, passages, embeddings, threshold=0.5):
+def filter_passages(query, passages, embeddings, threshold=0.6):
     query_embedding = np.array(embeddings.embed_query(query))  # Convert query to vector
     filtered_passages = []
     
@@ -79,8 +79,8 @@ if st.session_state.vector_store and st.session_state.qa_chain:
                 st.write(cleaned_answer)
 
                 st.subheader("Relevant Passages:")
-                docs = st.session_state.vector_store.similarity_search(query, k=8)  # Retrieve more passages
-                filtered_docs = filter_passages(query, docs, st.session_state.qa_chain.retriever.vectorstore.embeddings, threshold=0.6)
+                docs = st.session_state.vector_store.similarity_search(query, k=10)  # Retrieve more passages
+                filtered_docs = filter_passages(query, docs, st.session_state.qa_chain.retriever.vectorstore.embeddings, threshold=0.7)
 
                 for i, doc in enumerate(filtered_docs):
                     st.markdown(f"**Passage {i + 1}:**")
