@@ -25,5 +25,5 @@ COPY . .
 # Start command with health check
   HEALTHCHECK --interval=2m --timeout=30s --start-period=3m \
   CMD curl --fail http://localhost:8501/_stcore/health || exit 1
-
+EXPOSE 8501
 CMD ["streamlit", "run", "web_app.py", "--server.port", "8501", "--server.address", "0.0.0.0"]
